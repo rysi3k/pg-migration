@@ -52,7 +52,7 @@ function migrate(databaseClient, migrationsDir, cb) {
         }
         const changesetCode = changeset.replace('.sql', '');
         log('info', `Checking whether to apply changeset ${changesetCode}`);
-        return new Promise((resolve, reject) => {
+        return () => new Promise((resolve, reject) => {
           databaseClient.query(changesetExists, [changesetCode], (err, res) => {
             if (err) {
               // An error occurred while checking if this changeset exists
