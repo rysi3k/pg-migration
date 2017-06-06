@@ -43,7 +43,7 @@ function migrate(databaseClient, migrationsDir, cb) {
     }
 
     // Create promises for applying the changesets. Filter the README and dbchangelog.sql files
-    const promises = items
+    items
       .filter((e) => e.indexOf('README.md') === -1 && e.indexOf('dbchangelog.sql') === -1)
       .map((changeset) => {
         // Skip the default changeloglock table and the readme describing the changesets
@@ -92,11 +92,12 @@ function migrate(databaseClient, migrationsDir, cb) {
             })
           })
         })
-      });
-
-    Promise.all(promises).then(() => cb()).catch(() => {
-      log('error', 'One or more migrations failed to apply');
-      process.exit();
+      })
+      .reduce((promise, task) => promise.then(() => task()), Promise.resolve())
+      .then(cb)
+      .catch(() => {
+        log('error', 'One or more migrations failed to apply');
+        process.exit();
     });
   });
 }
