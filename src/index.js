@@ -67,7 +67,8 @@ function migrate(databaseClient, migrationsDir, cb) {
             log('info', `Applying changeset ${changesetCode}`);
             // Read the file content
             const changesetContent = fs.readFileSync(`./migrations/${changeset}`, 'UTF-8');
-            databaseClient.query("BEGIN", (err) => {
+            const noTransaction = changesetContent.startsWith('-- NO TRANSACTION');
+            databaseClient.query(noTransaction ? "SELECT 1" : "BEGIN", (err) => {
               databaseClient.query(changesetContent, (err) => {
                 // Apply the changeset
                 if (err) {
@@ -80,7 +81,7 @@ function migrate(databaseClient, migrationsDir, cb) {
                   if (err) {
                     return reject();
                   }
-                  databaseClient.query("COMMIT", (err) => {
+                  databaseClient.query(noTransaction ? "SELECT 1" : "COMMIT", (err) => {
                     if (err) {
                       return reject();
                     }
